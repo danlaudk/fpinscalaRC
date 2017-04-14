@@ -1,3 +1,5 @@
+[RC hangout link](https://plus.google.com/hangouts/_/calendar/ZGNsYXUwNEBnbWFpbC5jb20.f8jj0gs4s7l9bkhk80b0vv4tn8?authuser=0) 
+
 [![Build status](https://travis-ci.org/fpinscala/fpinscala.svg?branch=master)](https://travis-ci.org/fpinscala/fpinscala) [![Join the chat at https://gitter.im/fpinscala/fpinscala](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/fpinscala/fpinscala?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) 
 
 This repository contains exercises, hints, and answers for the book
