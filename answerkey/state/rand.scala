@@ -31,7 +31,22 @@ def map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] =
 // derive flatmap
 def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] = ???
 
-//
+// defn for-comprehension
+val cOfTypeMonadc1 = for(x <- c1; y <- c2; z <- c3) yield {...}
+
+val cOfTypeMonadc12 =c1.flatMap(x => 
+           c2.flatMap(y => 
+                      c3.map(z => 
+                             {...})))
+// ch.9 parsing
+def product[A,B](p: Parser[A], p2: => Parser[B]): Parser[(A,B)] = 
+???
+
+def productdash[A,B](p: Parser[A], p2: => Parser[B]): Parser[(A,B)] = 
+???
+
+
+// candy
 case class State[S, +A](run: S => (A, S)) {
   def map[B](f: A => B): State[S, B] = ???
   def map2[B,C](sb: State[S, B])(f: (A, B) => C): State[S, C] = ???
