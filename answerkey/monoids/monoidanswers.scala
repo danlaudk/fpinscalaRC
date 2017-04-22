@@ -151,5 +151,15 @@ def flatMap[A, B](list: List[A])(f: A => List[B]): List[B] = list match {
  // follow the types. the last () means fnapplication in order to 'remove' the argument required of the output type of compose (a fn)
  def flatMap[A,B](ma: F[A])(f: A => F[B]): F[B] =
   compose((_:Unit) => ma, f)(())
-  
+// ex 12
+  object ListFoldable extends Foldable[List] {
+  override def foldRight[A, B](as: List[A])(z: B)(f: (A, B) => B) =
+    as.foldRight(z)(f)
+  override def foldLeft[A, B](as: List[A])(z: B)(f: (B, A) => B) =
+    as.foldLeft(z)(f)
+  override def foldMap[A, B](as: List[A])(f: A => B)(mb: Monoid[B]): B =
+    (as.map(f)).foldLeft(mb.zero)(mb.op)
+    //foldLeft(as)(mb.zero)((b, a) => mb.op(b, f(a))) in the book , same?
+}
+
   
