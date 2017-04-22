@@ -159,7 +159,16 @@ def flatMap[A, B](list: List[A])(f: A => List[B]): List[B] = list match {
     as.foldLeft(z)(f)
   override def foldMap[A, B](as: List[A])(f: A => B)(mb: Monoid[B]): B =
     (as.map(f)).foldLeft(mb.zero)(mb.op)
-    //foldLeft(as)(mb.zero)((b, a) => mb.op(b, f(a))) in the book , same?
+    //foldLeft(as)(mb.zero)((b, a) => mb.op(b, f(a))) in the book , same?, but not as efficient? (bc mapped over list first)
 }
 
+  object TreeFoldable extends Foldable[Tree] {
+  override def foldMap[A, B](as: Tree[A])(f: A => B)(mb: Monoid[B]): B = as match { // show from scratch
+    case Leaf(a) => f(a)
+    case Branch(l, r) => mb.op(foldMap(l)(f)(mb), foldMap(r)(f)(mb))
+  }
+  override def foldLeft[A, B](as: Tree[A])(z: B)(f: (B, A) => B) = as match { // show from scratch
+    case Leaf(a) => f(z, a)
+    case Branch(l, r) => ??? // redo
+  }
   
