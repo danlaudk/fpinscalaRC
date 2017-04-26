@@ -1,3 +1,7 @@
+//  // Ex 20 What meaning does Reader give to monadic functions like sequence,join, and replicateM?
+  // From the The meaning of `join` is simply to pass the same value as both arguments to a
+  // binary function
+
 object Reader {
   def readerMonad[R] = new Monad[({type f[x] = Reader[R,x]})#f] {
     def unit[A](a: => A): Reader[R,A] = Reader(_ => a)
@@ -9,6 +13,7 @@ object Reader {
   def ask[R]: Reader[R, R] = Reader(r => r)
 }
 
+  
 // The action of Reader's `flatMap` is to pass the `r` argument along to both the
 // outer Reader and also to the result of `f`, the inner Reader. Similar to how
 // `State` passes along a state, except that in `Reader` the "state" is read-only.
@@ -19,6 +24,9 @@ object Reader {
 
 // The meaning of `join` is simply to pass the same value as both arguments to a
 // binary function.
+
+//********What binary function?
+
 
 // The meaning of `replicateM` is to apply the same function a number of times to
 // the same argument, returning a list of the results. Note that if this function
