@@ -1,5 +1,3 @@
-package fpinscala.monoids
-
 import fpinscala.parallelism.Nonblocking._
 import fpinscala.parallelism.Nonblocking.Par.toParOps // infix syntax for `Par.map`, `Par.flatMap`, etc
 import language.higherKinds
@@ -172,3 +170,17 @@ def flatMap[A, B](list: List[A])(f: A => List[B]): List[B] = list match {
     case Branch(l, r) => ??? // redo
   }
   
+    //https://en.wikibooks.org/wiki/Haskell/Foldable  why can't Data.Set be made mappable?
+// https://mail.haskell.org/pipermail/libraries/2007-May/007486.html
+    //2) Data.Set is a monad, but you can't convince Haskell's type system of that
+//  the way things are currently structured. This is because set operations
+//require elements to be instances of the Ord typeclass, and the Monad
+//typeclass signature doesn't allow for that. In the current typeclass, you
+//have:
+//return :: a -> m a
+//
+//While Set requires:
+//return :: Ord a => a -> m a -- return = singleton
+ 
+    // scala solution
+//    http://typelevel.org/blog/2014/06/22/mapping-sets.html
