@@ -184,3 +184,14 @@ def flatMap[A, B](list: List[A])(f: A => List[B]): List[B] = list match {
  
     // scala solution
 //    http://typelevel.org/blog/2014/06/22/mapping-sets.html
+    
+    
+    //Ex 10.8
+      // reminder: Par.map2 executes a , b in par, and get each, then Future(f(a,b)) (or UnitFuture which is simple version of Java.Future)  
+  // This ability to 'lift' a monoid any monoid to operate within
+  // some context (here `Par`) is something we'll discuss more in
+  // chapters 11 & 12. 
+  def par[A](m: Monoid[A]): Monoid[Par[A]] = new Monoid[Par[A]] {
+    def zero = Par.unit(m.zero)
+    def op(a: Par[A], b: Par[A]) = a.map2(b)(m.op) //Par.unit(m.op would defeat the purpose of Par   
+  }
