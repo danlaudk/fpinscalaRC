@@ -195,3 +195,23 @@ def flatMap[A, B](list: List[A])(f: A => List[B]): List[B] = list match {
     def zero = Par.unit(m.zero)
     def op(a: Par[A], b: Par[A]) = a.map2(b)(m.op) //Par.unit(m.op would defeat the purpose of Par   
   }
+
+    
+    // given
+    def foldMapV[A, B](as: IndexedSeq[A], m: Monoid[B])(f: A => B): B =
+    if (as.length == 0)
+      m.zero
+    else if (as.length == 1)
+      f(as(0))
+    else {
+      val (l, r) = as.splitAt(as.length / 2)
+      m.op(foldMapV(l, m)(f), foldMapV(r, m)(f))
+    }
+    // and 
+    def Par.parMap(seq1)(f):Par[Seq] = ???
+    //derive
+     // we perform the mapping and the reducing both in parallel
+  def parFoldMap[A,B](v: IndexedSeq[A], m: Monoid[B])(f: A => B): Par[B] =
+    Par.parMap(v)(f).flatMap { bs =>
+      foldMapV(bs, par(m))(b => Par.lazyUnit(b))
+    }
