@@ -1,0 +1,12 @@
+base page 218
+trait Traverse[F[_]] {
+def traverse[G[_] // in terms of sequence
+def sequence // in terms of traverse
+// only need one or the other?? need to implement concrete overrides on the List- Tree- specific ala 
+
+ex 12.14 why is def traeverse  still ito sequence?
+what does it mean for 
+// "in implementing map, you can call traverse with your choice of Applicative[G]"
+trait Traverse[F[_]] {
+def traverse[G[_],A,B](fa: F[A])(f: A => G[B])(implicit G: Applicative[G]): G[F[B]] =
+  sequence(map(fa)(f))
