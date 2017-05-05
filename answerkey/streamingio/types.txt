@@ -1,23 +1,49 @@
-sealed trait Process[I,O]
+sealed trait Process[I,O] //below  extend Process
 case class Emit[I,O](
     head: O,
-    tail: Process[I,O] = Halt[I,O]())
-    extends Process[I,O]
+    tail = Halt[I,O]())
 case class Await[I,O](
     recv: Option[I] => Process[I,O])
-    extends Process[I,O]
-case class Halt[I,O]() extends Process[I,O]
+case class Halt[I,O]() 
 
-driver apply  is inside trait so p(in)
+//driver apply  is inside trait so p(in)
+//
 def apply(s: Stream[I]): Stream[O] = this match {
-case Halt() => Stream()
-case Await(recv) => s match {
-case h #:: t => recv(Some(h))(t)
-case xs => recv(None)(xs)
-}
-case Emit(h,t) => h #:: t(s)
+    case Halt() => Stream()
+    case Await(recv) => s match {
+        case h #:: t => recv(Some(h))(t)
+        case xs => recv(None)(xs)
+    }
+    case Emit(h,t) => h #:: t(s)
 }
 
 // used to lift a f into a Process[I,O] , by using a recursive call 
 def repeat: Process[I,O] = {
       def go(p: Process[I,O]): Process[I,O] 
+
+
+
+
+Free[F[_],A] extends Free[F, A]
+  case class Suspend[F[_],A](s: F[A])
+  case class FlatMap[F[_],A,B](s: Free[F, A],
+                               f: A => Free[F, B]) 
+
+def freeMonad[F[_]] = new Monad[({type f[a] = Free[F,a]})#f] {...}
+
+ @annotation.tailrec
+def runTrampoline[A](a: Free[Function0,A]): A
+def run[F[_],A](a: Free[F,A])(implicit F: Monad[F]): F[A]
+
+
+from 15
+Process -Emit(O,Halt[I,O])
+        -Await(Option[I] => Process[I,O])
+        -Halt()
+    apply(Stream[I]) : Stream[O] // by deconstructing head tail and the field defns of Process[I,O]
+
+def repeat: Process[I,O] //used to lift a f into a Process[I,O] , by using a recursive call
+
+eg. 
+sum:Process[Dbl,Dbl] = Await{ Process[I,O]}  // by recursive calls on accumulated running total
+take:Process[I,I] = Await{ Process[I,O]} 
