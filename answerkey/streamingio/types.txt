@@ -76,4 +76,8 @@ trait Process[F[_],O]
               - Emit[F[_],O](O,Process[F,O]) // same
               - Halt[F[_],O](err: Throwable)  // adds err
               - End extends Exception/throwable
-}
+// flatMap is defined same
+// ++ (append), map, and filter for Process defined same adjusting for Throwable in types and some 
+// sources: Now, we can represent an effectful source directly using a Process[IO,O]. reqs of the “external” world can be
+// satisfied just by running or flatMaping into the IO action req . the recv function
+//can fall back to another process or clean up any resources as appropriate.
