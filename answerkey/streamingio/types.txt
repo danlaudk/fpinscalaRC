@@ -9,45 +9,71 @@ def freeMonad[F[_]] = new Monad[({type f[a] = Free[F,a]})#f] {...}
 def runTrampoline[A](a: Free[Function0,A]): A
 def run[F[_],A](a: Free[F,A])(implicit F: Monad[F]): F[A]
 
-trait Translate[F[_], G[_]] { def apply[A](f: F[A]): G[A] }
+// limits  what a value of type Function0[A] or Function0[OPtion[String]] might do 
+sealed trait Console[A] {
+  def toPar: Par[A] // eg Par.lazyUnit(run)
+  def toThunk: () => A // eg () => println(line)
+}
+Console[A] 
+      - ReadLine extends Console[Option[String]] { def run:Option[String] def toState: ConsoleState }
+      - PrintLine(line: String) extends Console[Unit]
 
-  type ~>[F[_], G[_]] = Translate[F,G] // gives us infix syntax `F ~> G` for `Translate[F,G]`
-
-  implicit val function0Monad = new Monad[Function0] {
-    def unit[A](a: => A) = () => a
-    def flatMap[A,B](a: Function0[A])(f: A => Function0[B]) =
-      () => f(a())()
-  }
-
-  implicit val parMonad = new Monad[Par] {
-    def unit[A](a: => A) = Par.unit(a)
-    def flatMap[A,B](a: Par[A])(f: A => Par[B]) = Par.fork { Par.flatMap(a)(f) }
-  }
-
-def runFree[F[_],G[_],A](free: Free[F,A])(t: F ~> G)(
-                           implicit G: Monad[G]): G[A] =    step(free) match {}
-
+//////// from functor to monad : even though we can make a free from any functor, we need a  monad for an interpreter, sth that can actually run. we will 'translate' to a monad Function0 or Par
+trait Translate[F[_], G[_]] { def apply[A](f: F[A]): G[A] } // ~>[F[_], G[_]]  = Translate[F,G] 
+                                                            // gives us infix syntax `F ~> G` for `Translate[F,G]`
 val consoleToPar: Console ~> Par
-val consoleToFunction0 =   new (Console ~> Function0) { def apply[A](a: Console[A]) = a.toThunk }
+val consoleToFunction0 =   new (Console ~> Function0) { def apply[A](a: Console[A]) = a.toThunk } // translation
+def runFree[F[_],G[_],A](free: Free[F,A])(t: F ~> G)(implicit G: Monad[G]): G[A] =    step(free) match {}
+// where ~> is defd as type ~>[F[_], G[_]]
 
-def runConsoleFunction0[A](a: Free[Console,A]): () => A =
-runFree[Console,Function0,A](a)(consoleToFunction0)
-def runConsolePar[A](a: Free[Console,A]): Par[A] =
-runFree[Console,Par,A](a)(consoleToPar)
 
+// Par.run(pool)(run(a)(parMonad)) ()()
+// convenience aka how to run. relies on stack safety of the underlying monad, eg function0
+def runConsoleFunction0[A](a: Free[Console,A]): () => A =runFree[Console,Function0,A](a)(consoleToFunction0)
+def runConsolePar[A](a: Free[Console,A]): Par[A] =runFree[Console,Par,A](a)(consoleToPar)
+// require
+implicit val function0Monad = new Monad[Function0] { def unit[A](a: => A) = () => a // def flatMap[A,B](a: Function0[A])(f: A => Function0[B]) =    () => f(a())() }
+implicit val parMonad = new Monad[Par]{}
+
+
+//stacksafe version of runconsole
+def runConsole[A](a: Free[Console,A]): A
 def translate[F[_],G[_],A](f: Free[F,A])(fg: F ~> G): Free[G,A] = runFree(f)(t)(freeMonad[G]) // t:(F ~> FreeG)
+
+
 //from 15
-Process -Emit(O,Halt[I,O])
-        -Await(Option[I] => Process[I,O])
+Process[I,O] // Process[I,_] is a Monad wrt 2nd param (fix I) ie O to O2 (List[_]) . unit(o)=Emit(o)
+// and flatMap based on  x ++ y, a process that will run x to completion and then run y on whatever input remains after x has halted.
+        -Emit(O,Halt[I,O])
+        -Await(Option[I] => Process[I,O]
         -Halt()
     apply(Stream[I]) : Stream[O] // by deconstructing head tail and the field defns of Process[I,O]
 
-def repeat: Process[I,O] //used to lift a f into a Process[I,O] , by using a recursive call
+// driving a Process
+def processFile[A,B](f: java.io.File,p: Process[String, A],z: B)(g: (B, A) => B): IO[B] = IO {
+  @annotation.tailrec
+  def go(ss: Iterator[String], cur: Process[String, A], acc: B): B // java.io.getline:Iterator[Str]...} // iterate with acc
+// using farenheit converter
+println { Process.runLog(converter) }
+// egs of Monad-like fns of process that compose to the desired result of driving a process , allowing
+processFile(f, count |> exists(_ > 40000), false)(_ || _) //driver 
 
-//eg. 
+//eg. count and exists are composed from fns like
+def repeat: Process[I,O] //used to lift a f into a Process[I,O] , by using a recursive call
 sum:Process[Dbl,Dbl] = Await{ Process[I,O]}  // by recursive calls on accumulated running total
 take:Process[I,I] = Await{ Process[I,O]} 
-
-// 
 def emit[I,O] = Emit(head:O, Halt[I,O]())
 def id[I]: Process[I,I] = lift(identity) // 
+
+//generalized : 
+def runLog[O](src: Process[IO,O]): IO[IndexedSeq[O]] = IO {
+  @annotation.tailrec
+  def go(cur: Process[IO,O], acc: IndexedSeq[O]): IndexedSeq[O] //uses Par.run(E) {IO3.run(req:Await(req)#req)(IO3.parMonad)}
+
+// cf below with type IO = Free or type ConsoleIO = Free[Console,O], Process reps a stream of O. Await[F like Suspend[F
+trait Process[F[_],O]
+              - Await[F[_],A,O](req: F[A],recv: Either[Throwable, A] => Process[F,O]) // cf simple adds req,which like thunk in Suspend(thunk) of Free. recv is like a fn input to flatmap
+              - Emit[F[_],O](O,Process[F,O]) // same
+              - Halt[F[_],O](err: Throwable)  // adds err
+              - End extends Exception/throwable
+}
